@@ -1,0 +1,39 @@
+#data_table tr: nth-child(even) {
+    background-color: #e276e2;
+}
+#data_table th {
+    color: #fff;
+    border:2px solid #fff;
+    background-color: #343340;
+    padding: 5px;
+}
+#data_table td {
+    border:2px solid #343220;
+    padding: 5px;
+}
+#data_table img {
+    width:34px;
+    cursor: pointer;
+}
+
+#pagination span {
+    display: inline-block;
+    width: 28px;
+    text-align: -webkit-match-parent;
+    padding: 5px;
+    border:2px solid silver;
+    border-radius: 4px;
+    margin: 0 5px;
+    cursor:pointer;
+}
+#pagination span.current {
+    background-color: deeppink;
+    color: yellow;
+    cursor:green;
+}
+form {
+    max-width: 540px;
+    display: table-column-group;
+    grid-template-columns: 1fr 3fr;
+    row-gap: 10px;
+}

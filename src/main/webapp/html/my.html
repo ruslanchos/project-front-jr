@@ -1,11 +1,327 @@
+<!doctype html>
 <html>
 <head>
     <title>RPG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+          integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link href="/css/my.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/resources/save.png" type="image/x-icon">
 </head>
 <body>
-<h1>RPG admin panel</h1>
+<div class="container pt-5 pb-5">
+    <div class="row">
+        <div class="col">
+            <h1 class="text-primary">=== RPG ADMIN PANEL ===</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h2 class="text-success">Accounts list:</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p>Count per page:
+                <select id="select_count">
+                    <option value="3">3</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <table id="data_table" class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Title</th>
+                <th scope="col">Race</th>
+                <th scope="col">Profession</th>
+                <th scope="col">Level</th>
+                <th scope="col">Birthday</th>
+                <th scope="col">Banned</th>
+                <th scope="col">Edit</th>
+                <th scope="col">Delete</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="pagination" class="pagination">
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col">
+            <h2 class="text-success">Create new account:</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form class="new_user_form">
+                <label for="name">Name: </label><input type="text" class="form-control" name="name" id="name" minlength="1" maxlength="12" required>
+                <label for="title">Title: </label><input type="text" class="form-control" name="title" id="title" minlength="1" maxlength="30"
+                                                         required>
+                <label for="race">Race: </label><select name="race" class="form-control" id="race">
+                <option value="HUMAN">HUMAN</option>
+                <option value="DWARF">DWARF</option>
+                <option value="ELF">ELF</option>
+                <option value="GIANT">GIANT</option>
+                <option value="ORC">ORC</option>
+                <option value="TROLL">TROLL</option>
+                <option value="HOBBITT">HOBBITT</option>
+            </select>
+                <label for="profession">Profession: </label><select name="profession" class="form-control" id="profession">
+                <option value="WARRIOR">WARRIOR</option>
+                <option value="ROGUE">ROGUE</option>
+                <option value="SORCERER">SORCERER</option>
+                <option value="CLERIC">CLERIC</option>
+                <option value="PALADIN">PALADIN</option>
+                <option value="NAZGUL">NAZGUL</option>
+                <option value="WARLOCK">WARLOCK</option>
+                <option value="DRUID">DRUID</option>
+            </select>
+                <label for="level">Level: </label><input type="number" class="form-control" min="0" max="100" name="level" id="level" required>
+                <label for="birthday">Birthday: </label><input type="date" name="birthday" class="form-control" id="birthday" min="2000-01-01"
+                                                               max="3000-01-01" required>
+                <label for="banned">Banned: </label><select name="banned" class="form-control" id="banned">
+                <option value="false" selected="selected">false</option>
+                <option value="true">true</option>
+            </select>
+                <input type="submit" class="btn btn-success create_btn" value="Create">
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function getCount() {
+        let count = 0;
+        $.ajax({
+            url: 'rest/players/count',
+            async: false,
+            success: function (data) {
+                count = parseInt(data);
+            }
+        });
+        return count;
+    }
 
+    function showPageButtons(count, curPage = 1) {
+        let pageSize = $('#select_count').val();
+        let pages = Math.ceil((count / pageSize));
+        let currPage = curPage;
+        $("#pagination").html("");
+        for (let i = 1; i <= pages; i++) {
+            $("#pagination").append('<span class="page_number">' + i + '</span>');
+        }
+        $('.page_number:nth-of-type(' + currPage + ')').addClass('current');
+    }
+
+    function loadPlayers(pageNumber, pageSize) {
+        let parameters = {pageNumber: pageNumber, pageSize: pageSize};
+        $.getJSON("rest/players/", parameters, function (data) {
+            $(".data_string").remove();
+            for (let i = 0; i < data.length; i++) {
+                $("#data_table").find("tbody").append('<tr class="data_string">' +
+                    '<td>' + data[i].id + '</td>' +
+                    '<td>' + data[i].name + '</td>' +
+                    '<td>' + data[i].title + '</td>' +
+                    '<td>' + data[i].race + '</td>' +
+                    '<td>' + data[i].profession + '</td>' +
+                    '<td>' + data[i].level + '</td>' +
+                    '<td>' + new Date(data[i].birthday).toLocaleDateString() + '</td>' +
+                    '<td>' + data[i].banned + '</td>' +
+                    '<td><div class="edit_btn" data-id="' + data[i].id + '"><img src="../img/edit.png" /></div></td>' +
+                    '<td><div class="del_btn" data-id="' + data[i].id + '"><img src="../img/delete.png" /></div></td>' +
+                    '</td></tr>');
+            }
+        });
+    }
+
+    let pageSize = $('#select_count').val();
+    let count = getCount();
+    loadPlayers(0, pageSize);
+    showPageButtons(count);
+
+    $('#select_count').change(function () {
+        let pageSize = $(this).val();
+        loadPlayers(0, pageSize);
+        showPageButtons(count);
+    });
+
+    $(document).on('click', '.page_number', function () {
+        let pageNumber = $(this).text();
+        let pageSize = $('#select_count').val();
+        loadPlayers(pageNumber - 1, pageSize);
+        $(".current").removeClass("current");
+        $(this).addClass("current");
+    });
+    //DEL
+    $(document).on('click', '.del_btn', function () {
+        let ID = $(this).attr('data-id');
+        $.ajax({
+            type: "DELETE",
+            url: "rest/players/" + ID,
+            success: function () {
+                let count = getCount();
+                let pageNumber = $(".current").text();
+                showPageButtons(count, pageNumber);
+                let pageSize = $('#select_count').val();
+                loadPlayers(pageNumber - 1, pageSize);
+            },
+            error: function () {
+                alert('error!');
+            }
+        });
+    });
+    //CORRECT
+    $(document).on('click', '.edit_btn', function () {
+        $(this).html('<img src="../img/save.png" />').addClass("save_btn").removeClass("edit_btn");
+        let current_tr = $(this).closest("tr");
+        current_tr.find(".del_btn").remove();
+
+        let td_name = current_tr.find("td:eq(1)");
+        let name = td_name.text();
+        td_name.html('<input type="text" class="form-control" value="' + name + '">');
+
+        let td_title = current_tr.find("td:eq(2)");
+        let title = td_title.text();
+        td_title.html('<input type="text" class="form-control" value="' + title + '">');
+
+        let td_race = current_tr.find("td:eq(3)");
+        td_race.html(getSelectRace());
+
+        let td_prof = current_tr.find("td:eq(4)");
+        td_prof.html(getSelectProfession());
+
+        let td_banned = current_tr.find("td:eq(7)");
+        td_banned.html(getSelectBanned());
+    });
+
+    //TO SAVED
+    $(document).on('click', '.save_btn', function () {
+        let ID = $(this).attr("data-id");
+        let current_tr = $(this).closest("tr");
+
+        let td_name = current_tr.find("td:eq(1)");
+        let name = td_name.find("input").val();
+
+        let td_title = current_tr.find("td:eq(2)");
+        let title = td_title.find("input").val();
+
+        let td_race = current_tr.find("td:eq(3)");
+        let race = td_race.find("select").val();
+
+        let td_prof = current_tr.find("td:eq(4)");
+        let prof = td_prof.find("select").val();
+
+        let td_banned = current_tr.find("td:eq(7)");
+        let banned = td_banned.find("select").val();
+
+        $.ajax({
+            url: "rest/players/" + ID,
+            type: "POST",
+            async: false,
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({
+                "name": name,
+                "title": title,
+                "race": race,
+                "profession": prof,
+                "banned": banned
+            }),
+            success: function() {
+                let count = getCount();
+                let pageNumber = $(".current").text();
+                showPageButtons(count, pageNumber);
+                let pageSize = $('#select_count').val();
+                loadPlayers(pageNumber - 1, pageSize);
+            }
+        })
+    })
+
+    function getSelectRace() {
+        return '<select class="form-control">' +
+            '<option value="HUMAN">HUMAN</option>' +
+            '<option value="DWARF">DWARF</option>' +
+            '<option value="ELF">ELF</option>' +
+            '<option value="GIANT">GIANT</option>' +
+            '<option value="ORC">ORC</option>' +
+            '<option value="TROLL">TROLL</option>' +
+            '<option value="HOBBIT">HOBBIT</option>' +
+            '</select>';
+    }
+
+    function getSelectProfession() {
+        return '<select class="form-control">' +
+            '<option value="WARRIOR">WARRIOR</option>' +
+            '<option value="ROGUE">ROGUE</option>' +
+            '<option value="SORCERER">SORCERER</option>' +
+            '<option value="CLERIC">CLERIC</option>' +
+            '<option value="PALADIN">PALADIN</option>' +
+            '<option value="NAZGUL">NAZGUL</option>' +
+            '<option value="WARLOCK">WARLOCK</option>' +
+            '<option value="DRUID">DRUID</option>' +
+            '</select>';
+    }
+
+    function getSelectBanned() {
+        return '<select class="form-control">' +
+            '<option value="true">true</option>' +
+            '<option value="false">false</option>' +
+            '</select>';
+    }
+
+    function parseDate(string) {
+        let arr = string.split(".");
+        arr.reverse();
+        return arr.join("-");
+    }
+
+    //ADD OR CREATE NEW USER
+    $(document).on('click', '.create_btn', function () {
+        let form = $(".new_user_form");
+        let name = form.find('input[name="name"]').val();
+        let title = form.find('input[name="title"]').val();
+        let race = form.find('select[name="race"]').val();
+        let prof = form.find('select[name="profession"]').val();
+        let level = form.find('input[name="level"]').val();
+        let birthday = form.find('input[name="birthday"]').val();
+        let banned = form.find('select[name="banned"]').val();
+        console.log(name);
+        console.log(title);
+        console.log(race);
+        console.log(prof);
+        console.log(level);
+        console.log(birthday);
+        console.log(banned);
+        $.ajax({
+            url: "rest/players/",
+            type: "POST",
+            async: false,
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({
+                "name": name,
+                "title": title,
+                "race": race,
+                "profession": prof,
+                "level": level,
+                "birthday": new Date(birthday).getTime(),
+                "banned": banned
+            }),
+            success: function() {
+                let count = getCount();
+                let pageNumber = $(".current").text();
+                showPageButtons(count, pageNumber);
+                let pageSize = $('#select_count').val();
+                loadPlayers(pageNumber - 1, pageSize);
+            }
+        })
+    })
+
+</script>
 </body>
 </html>
